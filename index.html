@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Contributions Calendar</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+      background-color: #0d1117;
+      color: #c9d1d9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+    }
+
+    .calendar-container {
+      text-align: center;
+      padding: 20px;
+      background-color: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      position: relative;
+    }
+
+    .color-picker {
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .color-picker-title {
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: #8b949e;
+    }
+
+    .color-button {
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      border: none;
+      margin: 0 5px;
+      cursor: pointer;
+    }
+
+    .color-button[data-level="0"] { background-color: #161b22; border: 1px solid #30363d; }
+    .color-button[data-level="1"] { background-color: #0e4429; }
+    .color-button[data-level="2"] { background-color: #006d32; }
+    .color-button[data-level="3"] { background-color: #26a641; }
+    .color-button[data-level="4"] { background-color: #39d353; }
+
+    .month-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-left: 40px;
+      margin-bottom: 5px;
+      width: 720px;
+    }
+
+    .month-labels div {
+      font-size: 12px;
+      color: #c9d1d9;
+    }
+
+    .contribution-calendar {
+      display: flex;
+    }
+
+    .weekdays {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      margin-right: 5px;
+    }
+
+    .weekdays div {
+      font-size: 10px;
+      color: #c9d1d9;
+      height: 12px;
+    }
+
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(53, 13px);
+      grid-template-rows: repeat(7, 13px);
+      grid-gap: 2px;
+    }
+
+    .day {
+      width: 12px;
+      height: 12px;
+      background-color: #161b22;
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+      transition: fill 0.2s ease-in-out;
+    }
+
+    .day[data-level="1"] { background-color: #0e4429; }
+    .day[data-level="2"] { background-color: #006d32; }
+    .day[data-level="3"] { background-color: #26a641; }
+    .day[data-level="4"] { background-color: #39d353; }
+
+    .legend-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #8b949e;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+    }
+
+    .legend .box {
+      width: 12px;
+      height: 12px;
+      margin: 0 2px;
+      border-radius: 2px;
+      background-color: #161b22;
+      border: 1px solid #30363d;
+    }
+
+    .legend .box[data-level="1"] { background-color: #0e4429; }
+    .legend .box[data-level="2"] { background-color: #006d32; }
+    .legend .box[data-level="3"] { background-color: #26a641; }
+    .legend .box[data-level="4"] { background-color: #39d353; }
+
+    .contribution-summary {
+      text-align: left;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .learn-more {
+      font-size: 12px;
+      color: #8b949e;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="color-picker">
+    <div class="color-picker-title">Select a color below and click on the grid to paint</div>
+    <button class="color-button" data-level="1"></button>
+    <button class="color-button" data-level="2"></button>
+    <button class="color-button" data-level="3"></button>
+    <button class="color-button" data-level="4"></button>
+    <button class="color-button" data-level="0"></button>
+  </div>
+
+  <div class="calendar-container">
+    <div class="contribution-summary">
+      <span id="contribution-count">0</span> contributions in the last year
+    </div>
+
+    <div class="month-labels">
+      <div>Jan</div><div>Feb</div><div>Mar</div><div>Apr</div><div>May</div><div>Jun</div>
+      <div>Jul</div><div>Aug</div><div>Sep</div><div>Oct</div><div>Nov</div><div>Dec</div>
+    </div>
+
+    <div class="contribution-calendar">
+      <div class="weekdays">
+        <div>Mon</div>
+        <div></div>
+        <div>Wed</div>
+        <div></div>
+        <div>Fri</div>
+        <div></div>
+        <div></div>
+      </div>
+
+      <div class="days-grid">
+        <script>
+          let selectedLevel = "1";
+          let totalContributions = 0;
+
+          // Color picker buttons
+          document.querySelectorAll('.color-button').forEach(button => {
+            button.addEventListener('click', () => {
+              selectedLevel = button.getAttribute('data-level');
+            });
+          });
+
+          const weeks = 53;
+          const days = 7;
+          const grid = document.querySelector('.days-grid');
+
+          for (let w = 0; w < weeks; w++) {
+            for (let d = 0; d < days; d++) {
+              const day = document.createElement('div');
+              day.classList.add('day');
+              const level = 0;
+
+              day.setAttribute('data-level', level);
+              day.setAttribute('data-count', 0);
+              day.setAttribute('data-date', `2024-${w + 1}-${d + 1}`);
+
+              day.addEventListener('click', () => {
+                const currentLevel = day.getAttribute('data-level');
+
+                if (currentLevel === "0" && selectedLevel !== "0") {
+                  totalContributions++;
+                } else if (currentLevel !== "0" && selectedLevel === "0") {
+                  totalContributions--;
+                }
+
+                document.getElementById('contribution-count').innerText = totalContributions;
+
+                if (currentLevel === selectedLevel) {
+                  day.setAttribute('data-level', "0");
+                  day.setAttribute('data-count', 0);
+                } else {
+                  day.setAttribute('data-level', selectedLevel);
+                  day.setAttribute('data-count', 1);
+                }
+              });
+
+              grid.appendChild(day);
+            }
+          }
+        </script>
+      </div>
+    </div>
+
+    <div class="legend-container">
+      <div class="learn-more">
+        Learn how we count contributions
+      </div>
+      <div class="legend">
+        Less
+        <div class="box" data-level="0"></div>
+        <div class="box" data-level="1"></div>
+        <div class="box" data-level="2"></div>
+        <div class="box" data-level="3"></div>
+        <div class="box" data-level="4"></div>
+        More
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
